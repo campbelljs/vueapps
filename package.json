@@ -1,9 +1,14 @@
 {
   "name": "@campbell/vueapps",
   "version": "1.0.0",
-  "description": "a campbell plugin for loading vue projects from public dir",
+  "description": "A campbell plugin for integrating vue-cli projects from public dir",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/campbelljs/vueapps"
+  },
   "scripts": {
+    "postversion": "npm publish && git push && git push --tags",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mathis TLD",
