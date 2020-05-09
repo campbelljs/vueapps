@@ -24,10 +24,16 @@ module.exports = {
     const { logger, isDev } = this;
     let instance = this;
 
+    let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
+    // set env (needed to make sure vue.config.js is loaded)
+    process.env.VUE_CLI_CONTEXT = src;
     let webpackConfig = require(path.resolve(
       src,
       "node_modules/@vue/cli-service/webpack.config.js"
     ));
+    // reset env var
+    process.env.VUE_CLI_CONTEXT = VUE_CLI_CONTEXT;
+
     // override config
     let buildDir = path.resolve(
       this.getDir("build"),
