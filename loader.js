@@ -36,8 +36,7 @@ module.exports = {
 
     // override config
     let buildDir = path.resolve(
-      this.getDir("build"),
-      ".vueapps",
+      this.$vueapps.buildDir,
       route.replace(/^\//, "")
     );
 

@@ -5,7 +5,7 @@ const express = require("express");
 module.exports = {
   name: "vueapps",
   async install() {
-    let buildDir = path.resolve(this.getDir("build"), ".vueapps");
+    let buildDir = path.resolve(this.getDir("build"), "vueapps");
     await fs.ensureDir(buildDir);
     await fs.emptyDir(buildDir);
 
