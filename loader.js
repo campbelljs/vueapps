@@ -47,7 +47,10 @@ module.exports = {
         path: buildDir,
         publicPath: route + "/"
       },
-      context: src
+      context: src,
+      resolve: {
+        modules: ["node_modules", ...module.paths]
+      }
     });
 
     if (isDev) {
@@ -55,9 +58,11 @@ module.exports = {
       webpackConfig = merge(webpackConfig, {
         plugins: [new webpack.HotModuleReplacementPlugin()]
       });
-      webpackConfig.entry.app.unshift(
-        `webpack-hot-middleware/client?path=/vueapps_hot${route}`
-      );
+      Object.keys(webpackConfig.entry).forEach(entry => {
+        webpackConfig.entry[entry].unshift(
+          `webpack-hot-middleware/client?path=/vueapps_hot${route}`
+        );
+      });
     }
 
     let compiler = webpack(webpackConfig);
