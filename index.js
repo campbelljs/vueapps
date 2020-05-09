@@ -23,7 +23,9 @@ module.exports = {
     if (this.server) {
       this.server.loaders.push(require("./loader"));
 
-      this.server.use(express.static(buildDir));
+      this.server.middlewares
+        .use(express.static(buildDir, { extensions: ["html"] }))
+        .as("vueapps-static");
     }
   }
 };

@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs-extra");
 
 const webpack = require("webpack");
 const merge = require("webpack-merge");
@@ -16,6 +17,13 @@ function installDeps(projectDir) {
   });
 }
 
+function historyApiFallbackMiddleware(req, res, next) {
+  if (/^[^\.]*(\.html)?$/.test(req.path)) {
+    req.url = "/index.html";
+  }
+  next();
+}
+
 module.exports = {
   test(src) {
     return /\.vueapp$/.test(src);
@@ -23,6 +31,14 @@ module.exports = {
   load({ src, route }) {
     const { logger, isDev } = this;
     let instance = this;
+
+    let vueappConfig = {
+      historyApiFallback: false
+    };
+    let vueappConfigPath = path.resolve(src, "vueapp.config.js");
+    if (fs.pathExistsSync(vueappConfigPath)) {
+      vueappConfig = merge(vueappConfig, require(vueappConfigPath));
+    }
 
     let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
     // set env (needed to make sure vue.config.js is loaded)
@@ -41,7 +57,6 @@ module.exports = {
     );
 
     webpackConfig = merge(webpackConfig, {
-      // mode: "production",
       output: {
         path: buildDir,
         publicPath: route + "/"
@@ -63,7 +78,6 @@ module.exports = {
         );
       });
     }
-
     let compiler = webpack(webpackConfig);
 
     async function installAndCompile() {
@@ -73,6 +87,13 @@ module.exports = {
         compiler.hooks.done.tap("VueApps", () => {
           resolve();
         });
+
+        let { historyApiFallback } = vueappConfig;
+        if (historyApiFallback) {
+          instance.server.middlewares
+            .before("vueapps-static")
+            .use(route, historyApiFallbackMiddleware);
+        }
 
         if (isDev) {
           // dev middleware
