@@ -1,6 +1,6 @@
 {
   "name": "@campbell/vueapps",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A campbell plugin for integrating vue-cli projects from public dir",
   "main": "index.js",
   "repository": {
