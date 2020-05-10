@@ -46,6 +46,7 @@ module.exports = {
     let id = route;
 
     async function build() {
+      logger.info(`vueapps: [${id}] building ...`);
       await installDeps(src);
 
       let vueappConfigPath = path.resolve(src, "vueapp.config.js");
