@@ -138,7 +138,11 @@ module.exports = {
 
     this.hooks["build:before"].tapPromise(`VueApps:${id}`, async function() {
       const { hash } = await hashElement(src, {
+        files: {
+          ignoreRootName: true
+        },
         folders: {
+          ignoreRootName: true,
           ignore: ["**/node_modules/**"]
         }
       });
