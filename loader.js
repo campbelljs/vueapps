@@ -5,6 +5,8 @@ const webpack = require("webpack");
 const merge = require("webpack-merge");
 const { exec } = require("child_process");
 
+const { hashElement } = require("folder-hash");
+
 function installDeps(projectDir) {
   return new Promise((resolve, reject) => {
     exec("npm install", { cwd: projectDir }, (error, stdout, stderr) => {
@@ -39,6 +41,8 @@ module.exports = {
     if (fs.pathExistsSync(vueappConfigPath)) {
       vueappConfig = merge(vueappConfig, require(vueappConfigPath));
     }
+
+    let id = route;
 
     let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
     // set env (needed to make sure vue.config.js is loaded)
@@ -80,9 +84,9 @@ module.exports = {
     }
     let compiler = webpack(webpackConfig);
 
-    async function installAndCompile() {
+    async function build() {
       await installDeps(src);
-      logger.verbose(`vueapps: [${route}] dependencies installed`);
+      logger.verbose(`vueapps: [${id}] dependencies installed`);
       await new Promise((resolve, reject) => {
         compiler.hooks.done.tap("VueApps", () => {
           resolve();
@@ -104,14 +108,14 @@ module.exports = {
                 stats: "minimal"
               })
             )
-            .as(`vueapp:${route}`);
+            .as(`vueapp:${id}`);
           instance.server.middlewares
             .use(
               require("webpack-hot-middleware")(compiler, {
                 path: `/vueapps_hot${route}`
               })
             )
-            .as(`vueapp:${route}:hot`);
+            .as(`vueapp:${id}:hot`);
         } else {
           compiler.run((err, stats) => {
             if (err) throw err;
@@ -121,14 +125,23 @@ module.exports = {
           });
         }
       });
-      logger.verbose(`vueapps: [${route}] compilation done`);
+      logger.verbose(`vueapps: [${id}] compilation done`);
     }
 
-    let ready = installAndCompile();
+    this.hooks["build:before"].tapPromise(`VueApps:${id}`, async function() {
+      const { hash } = await hashElement(src, {
+        folders: {
+          ignore: ["**/node_modules/**"]
+        }
+      });
 
-    let app = { src, route, compiler, ready };
-    if (this.$vueapps.apps[route])
-      throw new Error(`VueApps conflict : many apps at route ${route}`);
-    else this.$vueapps.apps[route] = app;
+      let app = { id, src, route, compiler, build, hash };
+
+      if (instance.$vueapps.apps[id])
+        throw new Error(`VueApps conflict : many apps at route ${route}`);
+      else instance.$vueapps.apps[id] = app;
+
+      return;
+    });
   }
 };
