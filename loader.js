@@ -37,10 +37,6 @@ module.exports = {
     let vueappConfig = {
       historyApiFallback: false
     };
-    let vueappConfigPath = path.resolve(src, "vueapp.config.js");
-    if (fs.pathExistsSync(vueappConfigPath)) {
-      vueappConfig = merge(vueappConfig, require(vueappConfigPath));
-    }
 
     let buildDir = path.resolve(
       this.$vueapps.buildDir,
@@ -49,48 +45,54 @@ module.exports = {
 
     let id = route;
 
-    let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
-    let CAMPBELL_VUEAPPS_OUTPUT_DIR = process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR;
-    // set env (needed to make sure vue.config.js is loaded)
-    process.env.VUE_CLI_CONTEXT = src;
-    process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = buildDir;
-    let webpackConfig = require(path.resolve(
-      src,
-      "node_modules/@vue/cli-service/webpack.config.js"
-    ));
-
-    // reset env var
-    process.env.VUE_CLI_CONTEXT = VUE_CLI_CONTEXT;
-    process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = CAMPBELL_VUEAPPS_OUTPUT_DIR;
-
-    // override config
-
-    webpackConfig = merge(webpackConfig, {
-      output: {
-        path: buildDir,
-        publicPath: route + (route === "/" ? "" : "/")
-      },
-      context: src,
-      resolve: {
-        modules: ["node_modules", ...module.paths]
-      }
-    });
-
-    if (isDev) {
-      // hot middleware
-      webpackConfig = merge(webpackConfig, {
-        plugins: [new webpack.HotModuleReplacementPlugin()]
-      });
-      Object.keys(webpackConfig.entry).forEach(entry => {
-        webpackConfig.entry[entry].unshift(
-          `webpack-hot-middleware/client?path=/vueapps_hot${route}`
-        );
-      });
-    }
-    let compiler = webpack(webpackConfig);
-
     async function build() {
       await installDeps(src);
+
+      let vueappConfigPath = path.resolve(src, "vueapp.config.js");
+      if (fs.pathExistsSync(vueappConfigPath)) {
+        vueappConfig = merge(vueappConfig, require(vueappConfigPath));
+      }
+
+      let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
+      let CAMPBELL_VUEAPPS_OUTPUT_DIR = process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR;
+      // set env (needed to make sure vue.config.js is loaded)
+      process.env.VUE_CLI_CONTEXT = src;
+      process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = buildDir;
+      let webpackConfig = require(path.resolve(
+        src,
+        "node_modules/@vue/cli-service/webpack.config.js"
+      ));
+
+      // reset env var
+      process.env.VUE_CLI_CONTEXT = VUE_CLI_CONTEXT;
+      process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = CAMPBELL_VUEAPPS_OUTPUT_DIR;
+
+      // override config
+
+      webpackConfig = merge(webpackConfig, {
+        output: {
+          path: buildDir,
+          publicPath: route + (route === "/" ? "" : "/")
+        },
+        context: src,
+        resolve: {
+          modules: ["node_modules", ...module.paths]
+        }
+      });
+
+      if (isDev) {
+        // hot middleware
+        webpackConfig = merge(webpackConfig, {
+          plugins: [new webpack.HotModuleReplacementPlugin()]
+        });
+        Object.keys(webpackConfig.entry).forEach(entry => {
+          webpackConfig.entry[entry].unshift(
+            `webpack-hot-middleware/client?path=/vueapps_hot${route}`
+          );
+        });
+      }
+      let compiler = webpack(webpackConfig);
+
       logger.verbose(`vueapps: [${id}] dependencies installed`);
       await new Promise((resolve, reject) => {
         compiler.hooks.done.tap("VueApps", () => {
@@ -140,7 +142,7 @@ module.exports = {
         }
       });
 
-      let app = { id, src, route, compiler, build, hash };
+      let app = { id, src, route, build, hash };
 
       if (instance.$vueapps.apps[id])
         throw new Error(`VueApps conflict : many apps at route ${route}`);
