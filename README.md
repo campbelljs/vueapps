@@ -1,7 +1,26 @@
 ## Documentation
 
-you can add a file named vueapp.config.js
-in your something.vueapp dir :
+> **WARNING**: Make sure to add this in vue.config.js (this might be handled by a vue cli plugin later)
+
+```js
+module.exports = {
+  // @campbell/vueapps
+  outputDir: process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR,
+  chainWebpack: config => {
+    // fix babel cwd
+    config.module
+      .rule("js")
+      .use("babel-loader")
+      .loader("babel-loader")
+      .tap(options => {
+        return { ...options, cwd: __dirname };
+      });
+  }
+};
+```
+
+you can add a vueapp.config.js file
+in your app's root dir :
 
 ```js
 module.exports = {

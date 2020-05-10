@@ -42,23 +42,28 @@ module.exports = {
       vueappConfig = merge(vueappConfig, require(vueappConfigPath));
     }
 
-    let id = route;
-
-    let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
-    // set env (needed to make sure vue.config.js is loaded)
-    process.env.VUE_CLI_CONTEXT = src;
-    let webpackConfig = require(path.resolve(
-      src,
-      "node_modules/@vue/cli-service/webpack.config.js"
-    ));
-    // reset env var
-    process.env.VUE_CLI_CONTEXT = VUE_CLI_CONTEXT;
-
-    // override config
     let buildDir = path.resolve(
       this.$vueapps.buildDir,
       route.replace(/^\//, "")
     );
+
+    let id = route;
+
+    let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
+    let CAMPBELL_VUEAPPS_OUTPUT_DIR = process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR;
+    // set env (needed to make sure vue.config.js is loaded)
+    process.env.VUE_CLI_CONTEXT = src;
+    process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = buildDir;
+    let webpackConfig = require(path.resolve(
+      src,
+      "node_modules/@vue/cli-service/webpack.config.js"
+    ));
+
+    // reset env var
+    process.env.VUE_CLI_CONTEXT = VUE_CLI_CONTEXT;
+    process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = CAMPBELL_VUEAPPS_OUTPUT_DIR;
+
+    // override config
 
     webpackConfig = merge(webpackConfig, {
       output: {
