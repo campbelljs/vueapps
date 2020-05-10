@@ -9,7 +9,7 @@ const { hashElement } = require("folder-hash");
 
 function installDeps(projectDir) {
   return new Promise((resolve, reject) => {
-    exec("npm install", { cwd: projectDir }, (error, stdout, stderr) => {
+    exec("npm install --dev", { cwd: projectDir }, (error, stdout, stderr) => {
       if (error) {
         reject(error);
       } else {
