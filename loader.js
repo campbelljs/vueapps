@@ -59,7 +59,7 @@ module.exports = {
     webpackConfig = merge(webpackConfig, {
       output: {
         path: buildDir,
-        publicPath: route + "/"
+        publicPath: route + (route === "/" ? "" : "/")
       },
       context: src,
       resolve: {
