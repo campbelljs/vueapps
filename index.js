@@ -7,7 +7,7 @@ const _get = require("lodash/get");
 module.exports = {
   name: "vueapps",
   async install() {
-    const { isDev } = this;
+    const { isDev, logger } = this;
 
     let vueAppsDir = path.resolve(this.getDir("build"), "vueapps");
     let buildDir = path.resolve(vueAppsDir, "build");
@@ -46,6 +46,7 @@ module.exports = {
       );
 
       await fs.writeJson(cachePath, cache);
+      logger.info(`vueapps: built !`);
     });
 
     if (this.server) {
