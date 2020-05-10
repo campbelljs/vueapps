@@ -1,5 +1,7 @@
 ## Documentation
 
+> **WARNING**: files ignored by git could change the hash
+
 > **WARNING**: Make sure to add this in vue.config.js (this might be handled by a vue cli plugin later)
 
 ```js

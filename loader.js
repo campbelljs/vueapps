@@ -5,6 +5,8 @@ const webpack = require("webpack");
 const merge = require("webpack-merge");
 const { exec } = require("child_process");
 
+// const glob = require("glob");
+// const parseGitignore = require("parse-gitignore");
 const { hashElement } = require("folder-hash");
 
 function installDeps(projectDir) {
@@ -137,13 +139,16 @@ module.exports = {
     }
 
     this.hooks["build:before"].tapPromise(`VueApps:${id}`, async function() {
+      // glob("**/.gitignore", function(er, files) {
+      //   console.log(files);
+      // });
       const { hash } = await hashElement(src, {
         files: {
           ignoreRootName: true
         },
         folders: {
           ignoreRootName: true,
-          ignore: ["**/node_modules/**"]
+          exclude: ["node_modules"]
         }
       });
 

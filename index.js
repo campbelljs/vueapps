@@ -38,7 +38,7 @@ module.exports = {
           (async () => {
             let prevHash = _get(cache, [app.id, "hash"]);
             if (prevHash !== app.hash) {
-              await app.build();
+              // await app.build();
             }
             if (!isDev) cache[app.id] = { hash: app.hash };
           })()
