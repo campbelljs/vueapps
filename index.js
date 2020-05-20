@@ -26,15 +26,20 @@ module.exports = {
     this.$vueapps = {
       buildDir,
       apps: {},
-      cache
+      cache,
     };
     let $vueapps = this.$vueapps;
 
+    this.hooks["ui:configure-nuxt"].tap("VueApps", function (cfg) {
+      if (!cfg.ignore) cfg.ignore = [];
+      cfg.ignore.push("**/*.vueapp", "**/*.vueapp/**");
+    });
+
     // add hook
-    this.hooks["build"].tapPromise("VueApps", async function() {
+    this.hooks["build"].tapPromise("VueApps", async function () {
       let apps = Object.values($vueapps.apps);
       await Promise.all(
-        apps.map(app =>
+        apps.map((app) =>
           (async () => {
             let prevHash = _get(cache, [app.id, "hash"]);
             if (prevHash !== app.hash) {
@@ -56,5 +61,5 @@ module.exports = {
         .use(express.static(buildDir, { extensions: ["html"] }))
         .as("vueapps-static");
     }
-  }
+  },
 };
