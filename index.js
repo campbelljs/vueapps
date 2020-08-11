@@ -41,11 +41,13 @@ module.exports = {
       await Promise.all(
         apps.map((app) =>
           (async () => {
+            if (_get(cache, [app.id, "skip"])) return;
+
             let prevHash = _get(cache, [app.id, "hash"]);
             if (prevHash !== app.hash) {
               await app.build();
+              if (!isDev) cache[app.id] = { hash: app.hash };
             }
-            if (!isDev) cache[app.id] = { hash: app.hash };
           })()
         )
       );
