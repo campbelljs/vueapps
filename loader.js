@@ -37,7 +37,7 @@ module.exports = {
     let instance = this;
 
     let vueappConfig = {
-      historyApiFallback: false
+      historyApiFallback: false,
     };
 
     let buildDir = path.resolve(
@@ -75,20 +75,20 @@ module.exports = {
       webpackConfig = merge(webpackConfig, {
         output: {
           path: buildDir,
-          publicPath: route + (route === "/" ? "" : "/")
+          publicPath: route + (route === "/" ? "" : "/"),
         },
         context: src,
         resolve: {
-          modules: ["node_modules", ...module.paths]
-        }
+          modules: ["node_modules", ...module.paths],
+        },
       });
 
       if (isDev) {
         // hot middleware
         webpackConfig = merge(webpackConfig, {
-          plugins: [new webpack.HotModuleReplacementPlugin()]
+          plugins: [new webpack.HotModuleReplacementPlugin()],
         });
-        Object.keys(webpackConfig.entry).forEach(entry => {
+        Object.keys(webpackConfig.entry).forEach((entry) => {
           webpackConfig.entry[entry].unshift(
             `webpack-hot-middleware/client?path=/vueapps_hot${route}`
           );
@@ -115,14 +115,14 @@ module.exports = {
             .use(
               route,
               require("webpack-dev-middleware")(compiler, {
-                stats: "minimal"
+                stats: "minimal",
               })
             )
             .as(`vueapp:${id}`);
           instance.server.middlewares
             .use(
               require("webpack-hot-middleware")(compiler, {
-                path: `/vueapps_hot${route}`
+                path: `/vueapps_hot${route}`,
               })
             )
             .as(`vueapp:${id}:hot`);
@@ -138,18 +138,18 @@ module.exports = {
       logger.verbose(`vueapps: [${id}] compilation done`);
     }
 
-    this.hooks["build:before"].tapPromise(`VueApps:${id}`, async function() {
+    this.hooks["build:before"].tapPromise(`VueApps:${id}`, async function () {
       // glob("**/.gitignore", function(er, files) {
       //   console.log(files);
       // });
       const { hash } = await hashElement(src, {
         files: {
-          ignoreRootName: true
+          ignoreRootName: true,
         },
         folders: {
           ignoreRootName: true,
-          exclude: ["node_modules"]
-        }
+          exclude: ["node_modules"],
+        },
       });
 
       let app = { id, src, route, build, hash };
@@ -160,5 +160,5 @@ module.exports = {
 
       return;
     });
-  }
+  },
 };
