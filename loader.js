@@ -34,84 +34,95 @@ module.exports = {
   },
   load({ src, route }) {
     const { logger, isDev } = this;
-    let instance = this;
 
     let vueappConfig = {
       historyApiFallback: false,
+      installDependencies: true,
     };
-
     let buildDir = path.resolve(
       this.$vueapps.buildDir,
       route.replace(/^\//, "")
     );
-
     let id = route;
 
-    async function build() {
-      logger.info(`vueapps: [${id}] building ...`);
-      await installDeps(src);
+    let vueappConfigPath = path.resolve(src, "vueapp.config.js");
+    if (fs.pathExistsSync(vueappConfigPath)) {
+      vueappConfig = merge(vueappConfig, require(vueappConfigPath));
+    }
 
-      let vueappConfigPath = path.resolve(src, "vueapp.config.js");
-      if (fs.pathExistsSync(vueappConfigPath)) {
-        vueappConfig = merge(vueappConfig, require(vueappConfigPath));
+    let build = async () => {
+      if (vueappConfig.installDependencies) {
+        logger.verbose(`vueapps: [${id}] installing dependencies`);
+        await installDeps(src);
+        logger.verbose(`vueapps: [${id}] dependencies installed`);
+      } else {
+        logger.verbose(
+          `vueapps: [${id}] skipping the installation of dependencies`
+        );
       }
 
-      let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
-      let CAMPBELL_VUEAPPS_OUTPUT_DIR = process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR;
-      // set env (needed to make sure vue.config.js is loaded)
-      process.env.VUE_CLI_CONTEXT = src;
-      process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = buildDir;
-      let webpackConfig = require(path.resolve(
-        src,
-        "node_modules/@vue/cli-service/webpack.config.js"
-      ));
+      let getWebpackConfig = () => {
+        let VUE_CLI_CONTEXT = process.env.VUE_CLI_CONTEXT;
+        let CAMPBELL_VUEAPPS_OUTPUT_DIR =
+          process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR;
+        // set env (needed to make sure vue.config.js is loaded)
+        process.env.VUE_CLI_CONTEXT = src;
+        process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = buildDir;
+        let webpackConfig = require(path.resolve(
+          src,
+          "node_modules/@vue/cli-service/webpack.config.js"
+        ));
 
-      // reset env var
-      process.env.VUE_CLI_CONTEXT = VUE_CLI_CONTEXT;
-      process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = CAMPBELL_VUEAPPS_OUTPUT_DIR;
+        // reset env var
+        process.env.VUE_CLI_CONTEXT = VUE_CLI_CONTEXT;
+        process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR = CAMPBELL_VUEAPPS_OUTPUT_DIR;
 
-      // override config
+        // override config
 
-      webpackConfig = merge(webpackConfig, {
-        output: {
-          path: buildDir,
-          publicPath: route + (route === "/" ? "" : "/"),
-        },
-        context: src,
-        resolve: {
-          modules: ["node_modules", ...module.paths],
-        },
-      });
-
-      if (isDev) {
-        // hot middleware
         webpackConfig = merge(webpackConfig, {
-          plugins: [new webpack.HotModuleReplacementPlugin()],
+          output: {
+            path: buildDir,
+            publicPath: route + (route === "/" ? "" : "/"),
+          },
+          context: src,
+          resolve: {
+            modules: ["node_modules", ...module.paths],
+          },
         });
-        Object.keys(webpackConfig.entry).forEach((entry) => {
-          webpackConfig.entry[entry].unshift(
-            `webpack-hot-middleware/client?path=/vueapps_hot${route}`
-          );
-        });
-      }
+
+        if (isDev) {
+          // hot middleware
+          webpackConfig = merge(webpackConfig, {
+            plugins: [new webpack.HotModuleReplacementPlugin()],
+          });
+          Object.keys(webpackConfig.entry).forEach((entry) => {
+            webpackConfig.entry[entry].unshift(
+              `webpack-hot-middleware/client?path=/vueapps_hot${route}`
+            );
+          });
+        }
+        return webpackConfig;
+      };
+      let webpackConfig = getWebpackConfig();
+
       let compiler = webpack(webpackConfig);
 
-      logger.verbose(`vueapps: [${id}] dependencies installed`);
       await new Promise((resolve, reject) => {
         compiler.hooks.done.tap("VueApps", () => {
           resolve();
+          logger.verbose(`vueapps: [${id}] compilation done`);
         });
 
         let { historyApiFallback } = vueappConfig;
         if (historyApiFallback) {
-          instance.server.middlewares
+          this.server.middlewares
             .before("vueapps-static")
             .use(route, historyApiFallbackMiddleware);
         }
 
         if (isDev) {
           // dev middleware
-          instance.server.middlewares
+          this.server.middlewares
             .use(
               route,
               require("webpack-dev-middleware")(compiler, {
@@ -119,7 +130,7 @@ module.exports = {
               })
             )
             .as(`vueapp:${id}`);
-          instance.server.middlewares
+          this.server.middlewares
             .use(
               require("webpack-hot-middleware")(compiler, {
                 path: `/vueapps_hot${route}`,
@@ -135,10 +146,15 @@ module.exports = {
           });
         }
       });
-      logger.verbose(`vueapps: [${id}] compilation done`);
-    }
+    };
 
-    this.hooks["build:before"].tapPromise(`VueApps:${id}`, async function () {
+    let app = { id, src, route, build };
+
+    if (this.$vueapps.apps[id])
+      throw new Error(`VueApps conflict : many apps at route ${route}`);
+    else this.$vueapps.apps[id] = app;
+
+    let setHash = async () => {
       // glob("**/.gitignore", function(er, files) {
       //   console.log(files);
       // });
@@ -152,13 +168,8 @@ module.exports = {
         },
       });
 
-      let app = { id, src, route, build, hash };
-
-      if (instance.$vueapps.apps[id])
-        throw new Error(`VueApps conflict : many apps at route ${route}`);
-      else instance.$vueapps.apps[id] = app;
-
-      return;
-    });
+      this.$vueapps.apps[id].hash = hash;
+    };
+    this.hooks["build:before"].tapPromise(`VueApps:${id}`, setHash);
   },
 };
