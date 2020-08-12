@@ -8,16 +8,27 @@
 module.exports = {
   // @campbell/vueapps
   outputDir: process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR,
-  chainWebpack: config => {
+  chainWebpack: (config) => {
     // fix babel cwd
     config.module
       .rule("js")
       .use("babel-loader")
       .loader("babel-loader")
-      .tap(options => {
+      .tap((options) => {
         return { ...options, cwd: __dirname };
       });
-  }
+    // fix eslint cwd
+    config.module
+      .rule("eslint")
+      .use("eslint-loader")
+      .loader("eslint-loader")
+      .tap((options) => {
+        return {
+          ...options,
+          cwd: __dirname,
+        };
+      });
+  },
 };
 ```
 
@@ -26,7 +37,7 @@ in your app's root dir :
 
 ```js
 module.exports = {
-  historyApiFallback: true // default : false
+  historyApiFallback: true, // default : false
 };
 ```
 
