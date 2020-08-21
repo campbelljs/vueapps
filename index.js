@@ -30,10 +30,11 @@ module.exports = {
     };
     let $vueapps = this.$vueapps;
 
-    this.hooks["ui:configure-nuxt"].tap("VueApps", function (cfg) {
-      if (!cfg.ignore) cfg.ignore = [];
-      cfg.ignore.push("**/*.vueapp", "**/*.vueapp/**");
-    });
+    if (this.hooks["ui:configure-nuxt"])
+      this.hooks["ui:configure-nuxt"].tap("VueApps", function (cfg) {
+        if (!cfg.ignore) cfg.ignore = [];
+        cfg.ignore.push("**/*.vueapp", "**/*.vueapp/**");
+      });
 
     // add hook
     this.hooks["build"].tapPromise("VueApps", async function () {
