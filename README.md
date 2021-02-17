@@ -1,34 +1,24 @@
 ## Documentation
 
-> **WARNING**: files ignored by git could change the hash
+> **WARNING**: loaders using cwd might need to be configured manually (we already patch babel-loader and eslint-loader)
 
-> **WARNING**: Make sure to add this in vue.config.js (this might be handled by a vue cli plugin later)
+### Usage
+
+The build plugin will look for dirs ending with .vueapp in the public directory and automatically register vueapps with corresponding path
 
 ```js
+// campbell.config.js
 module.exports = {
-  // @campbell/vueapps
-  outputDir: process.env.CAMPBELL_VUEAPPS_OUTPUT_DIR,
-  chainWebpack: (config) => {
-    // fix babel cwd
-    config.module
-      .rule("js")
-      .use("babel-loader")
-      .loader("babel-loader")
-      .tap((options) => {
-        return { ...options, cwd: __dirname };
-      });
-    // fix eslint cwd
-    config.module
-      .rule("eslint")
-      .use("eslint-loader")
-      .loader("eslint-loader")
-      .tap((options) => {
-        return {
-          ...options,
-          cwd: __dirname,
-        };
-      });
-  },
+  presets: [require("@campbell/vueapps/build/preset")],
+  vueapps: {
+    // here you can add vueapps manually
+    apps: [
+      {
+        src: path.resolve(__dirname, "./vueapps/test-app"),
+        route: "/vueapps/test"
+      }
+    ]
+  }
 };
 ```
 
@@ -37,7 +27,7 @@ in your app's root dir :
 
 ```js
 module.exports = {
-  historyApiFallback: true, // default : false
+  historyApiFallback: true // default : false
 };
 ```
 
