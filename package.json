@@ -8,7 +8,7 @@
     "url": "https://github.com/campbelljs/vueapps"
   },
   "scripts": {
-    "postversion": "npm publish && git push && git push --tags",
+    "postversion": "npm publish --tag beta && git push && git push --tags",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mathis TLD",
