@@ -1,7 +1,7 @@
 {
   "name": "@campbell/vueapps",
   "version": "1.0.14",
-  "description": "A campbell plugin for integrating vue-cli projects from public dir",
+  "description": "A campbell plugin for integrating vue-cli projects",
   "main": "index.js",
   "repository": {
     "type": "git",
