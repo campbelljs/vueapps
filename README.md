@@ -15,10 +15,10 @@ module.exports = {
     apps: [
       {
         src: path.resolve(__dirname, "./vueapps/test-app"),
-        route: "/vueapps/test"
-      }
-    ]
-  }
+        route: "/vueapps/test",
+      },
+    ],
+  },
 };
 ```
 
@@ -27,7 +27,7 @@ in your app's root dir :
 
 ```js
 module.exports = {
-  historyApiFallback: true // default : false
+  historyApiFallback: true, // default : false
 };
 ```
 

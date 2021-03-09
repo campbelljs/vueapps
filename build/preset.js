@@ -1,6 +1,6 @@
 const path = require("path");
 
-module.exports = config => {
+module.exports = (config) => {
   if (!("vueapps" in config)) {
     config.vueapps = [];
   }

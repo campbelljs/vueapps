@@ -20,11 +20,11 @@ async function getVueApps(base, vueAppsInfos) {
       else
         resolve(
           res.map(
-            src =>
+            (src) =>
               new VueApp({
                 ...vueAppsInfos,
                 base,
-                src: path.resolve(base, src)
+                src: path.resolve(base, src),
               })
           )
         );
@@ -62,7 +62,7 @@ class VueApp {
         .relative(base, src.replace(/\.vueapp$/, ""))
         .split(path.sep);
       if (_route.length && _route[_route.length - 1] === "index") _route.pop();
-      _route = _route.map(el => (/^_/.test(el) ? el.replace(/^_/, ":") : el));
+      _route = _route.map((el) => (/^_/.test(el) ? el.replace(/^_/, ":") : el));
       this.route = "/" + _route.join("/");
     }
 
@@ -81,7 +81,7 @@ class VueApp {
 
     this.config = {
       historyApiFallback: false,
-      installDependencies: true
+      installDependencies: true,
     };
 
     const configFile = path.resolve(this.src, "vueapp.config.js");
@@ -134,17 +134,17 @@ class VueApp {
       .rule("js")
       .use("babel-loader")
       .loader("babel-loader")
-      .tap(options => ({ ...options, cwd: src }));
+      .tap((options) => ({ ...options, cwd: src }));
     // fix eslint cwd
     chainableWebpackConfig.module
       .rule("eslint")
       .use("eslint-loader")
       .loader("eslint-loader")
-      .tap(options => ({ ...options, cwd: src }));
+      .tap((options) => ({ ...options, cwd: src }));
     chainableWebpackConfig
       .plugin("WebpackBar")
       .use(WebpackBar, [{ name: `${id} (${route})` }]);
-    chainableWebpackConfig.plugin("friendly-errors").tap(prevArgs => {
+    chainableWebpackConfig.plugin("friendly-errors").tap((prevArgs) => {
       const args = [...prevArgs];
       args[0].clearConsole = false;
       return args;
@@ -164,18 +164,18 @@ class VueApp {
       const entries = Array.from(
         chainableWebpackConfig.entryPoints.store.keys()
       );
-      entries.forEach(entryName => {
+      entries.forEach((entryName) => {
         const entry = chainableWebpackConfig.entry(entryName);
         const sources = [
           // TODO: maybe we shoudl make the path specific to the VueApp instance
 
           `${path.dirname(
             require.resolve("webpack-hot-middleware")
-          )}/client?path=/__campbell_vueapps_hot&name=${configName}`
+          )}/client?path=/__campbell_vueapps_hot&name=${configName}`,
         ];
-        entry.store.forEach(src => sources.push(src));
+        entry.store.forEach((src) => sources.push(src));
         entry.clear();
-        sources.forEach(src => entry.add(src));
+        sources.forEach((src) => entry.add(src));
       });
     }
 
@@ -194,22 +194,22 @@ class VueApp {
       });
     });
     const ignore = [];
-    gitignoreSources.forEach(src =>
+    gitignoreSources.forEach((src) =>
       ignore.push(
-        ...gitignoreToGlob(src).map(pattern => pattern.replace(/^!/, ""))
+        ...gitignoreToGlob(src).map((pattern) => pattern.replace(/^!/, ""))
       )
     );
     const res = await hashElement(this.src, {
       files: {
         ignoreRootName: true,
         exclude: ignore,
-        matchPath: true
+        matchPath: true,
       },
       folders: {
         ignoreRootName: true,
         exclude: ignore,
-        matchPath: true
-      }
+        matchPath: true,
+      },
     });
 
     return res.hash;
@@ -232,7 +232,7 @@ class VueApp {
 
 module.exports = {
   hooks: {
-    build: async function(builder) {
+    build: async function (builder) {
       const VUEAPPS_OUTPUT = path.resolve(
         builder.resolvePath("#output"),
         "vueapps"
@@ -251,17 +251,17 @@ module.exports = {
       const vueAppsInfos = {
         manifest,
         VUEAPPS_OUTPUT,
-        isDev
+        isDev,
       };
       const vueapps = [];
       if ("vueapps" in builder.config) {
         if ("apps" in builder.config.vueapps) {
           vueapps.push(
             ...Array.from(builder.config.vueapps.apps).map(
-              opts =>
+              (opts) =>
                 new VueApp({
                   ...vueAppsInfos,
-                  ...opts
+                  ...opts,
                 })
             )
           );
@@ -271,31 +271,31 @@ module.exports = {
         ...(await getVueApps(builder.resolvePath("#public"), vueAppsInfos))
       );
 
-      await Promise.all(vueapps.map(v => v.prepare()));
-      vueapps.forEach(app => {
+      await Promise.all(vueapps.map((v) => v.prepare()));
+      vueapps.forEach((app) => {
         const { hash, route } = app;
         const { historyApiFallback } = app.config;
         manifest[app.id] = {
           hash,
           route,
-          historyApiFallback
+          historyApiFallback,
         };
       });
       await saveManifest();
-      const compiler = webpack(vueapps.map(v => v.webpackConfig));
+      const compiler = webpack(vueapps.map((v) => v.webpackConfig));
       if (builder.isDev) {
         const middlewares = {};
         // FIXME: this needs a trailing slash to resolve the app
         // FIXME: historyApiFallback should be handled in dev mode too
         middlewares.dev = require("webpack-dev-middleware")(compiler, {
-          stats: "minimal"
+          stats: "minimal",
         });
         middlewares.hot = require("webpack-hot-middleware")(compiler, {
-          path: "/__campbell_vueapps_hot"
+          path: "/__campbell_vueapps_hot",
         });
         // compilation will be handled by webpack-dev-middleware
         global.__CAMPBELL_VUEAPPS__ = {
-          middlewares
+          middlewares,
         };
       } else {
         // run compilation
@@ -306,7 +306,7 @@ module.exports = {
               if (stats.hasErrors()) {
                 console.error(
                   stats.toString({
-                    colors: true
+                    colors: true,
                   })
                 );
                 reject(new Error("vueapps compilation failed"));
@@ -319,6 +319,6 @@ module.exports = {
         });
         console.log("\nvueapps: every app compiled successfully\n");
       }
-    }
-  }
+    },
+  },
 };
