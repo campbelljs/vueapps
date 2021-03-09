@@ -288,7 +288,9 @@ module.exports = {
         // FIXME: this needs a trailing slash to resolve the app
         // FIXME: historyApiFallback should be handled in dev mode too
         middlewares.dev = require("webpack-dev-middleware")(compiler, {
-          stats: "minimal",
+          stats: {
+            ...webpack.Stats.presetToOptions("minimal"),
+          },
         });
         middlewares.hot = require("webpack-hot-middleware")(compiler, {
           path: "/__campbell_vueapps_hot",
