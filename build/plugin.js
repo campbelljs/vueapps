@@ -271,11 +271,15 @@ module.exports = {
         ...(await getVueApps(builder.resolvePath("#public"), vueAppsInfos))
       );
 
+      // stop if no vueapps
+      if (!vueapps.length) return;
+
       await Promise.all(vueapps.map((v) => v.prepare()));
       vueapps.forEach((app) => {
         const { hash, route } = app;
         const { historyApiFallback } = app.config;
         manifest[app.id] = {
+          id: app.id,
           hash,
           route,
           historyApiFallback,
