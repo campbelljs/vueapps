@@ -82,6 +82,7 @@ class VueApp {
     this.config = {
       historyApiFallback: false,
       installDependencies: true,
+      disableProgressBar: false,
     };
 
     const configFile = path.resolve(this.src, "vueapp.config.js");
@@ -141,9 +142,11 @@ class VueApp {
       .use("eslint-loader")
       .loader("eslint-loader")
       .tap((options) => ({ ...options, cwd: src }));
-    chainableWebpackConfig
-      .plugin("WebpackBar")
-      .use(WebpackBar, [{ name: `${id} (${route})` }]);
+
+    if (!this.config.disableProgressBar)
+      chainableWebpackConfig
+        .plugin("WebpackBar")
+        .use(WebpackBar, [{ name: `${id} (${route})` }]);
     chainableWebpackConfig.plugin("friendly-errors").tap((prevArgs) => {
       const args = [...prevArgs];
       args[0].clearConsole = false;
