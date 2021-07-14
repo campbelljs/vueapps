@@ -302,6 +302,7 @@ module.exports = {
         // compilation will be handled by webpack-dev-middleware
         global.__CAMPBELL_VUEAPPS__ = {
           middlewares,
+          manifest,
         };
       } else {
         // run compilation
